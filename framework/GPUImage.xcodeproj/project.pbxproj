@@ -7,6 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C6570FA23307D8C003C53FA /* TPCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C6570F523307D8C003C53FA /* TPCircularBuffer.h */; };
+		0C6570FB23307D8C003C53FA /* TPCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C6570F523307D8C003C53FA /* TPCircularBuffer.h */; };
+		0C6570FC23307D8C003C53FA /* GPUImage-Bridging-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C6570F623307D8C003C53FA /* GPUImage-Bridging-Header.h */; };
+		0C6570FD23307D8C003C53FA /* GPUImage-Bridging-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C6570F623307D8C003C53FA /* GPUImage-Bridging-Header.h */; };
+		0C6570FE23307D8C003C53FA /* NSObject+Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C6570F723307D8C003C53FA /* NSObject+Exception.h */; };
+		0C6570FF23307D8C003C53FA /* NSObject+Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 0C6570F723307D8C003C53FA /* NSObject+Exception.h */; };
+		0C65710023307D8C003C53FA /* TPCircularBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C6570F823307D8C003C53FA /* TPCircularBuffer.m */; };
+		0C65710123307D8C003C53FA /* TPCircularBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C6570F823307D8C003C53FA /* TPCircularBuffer.m */; };
+		0C65710223307D8C003C53FA /* NSObject+Exception.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C6570F923307D8C003C53FA /* NSObject+Exception.m */; };
+		0C65710323307D8C003C53FA /* NSObject+Exception.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C6570F923307D8C003C53FA /* NSObject+Exception.m */; };
+		0C65710523308A0C003C53FA /* SpeakerOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C65710423308A0C003C53FA /* SpeakerOutput.swift */; };
+		0C65710623308A0C003C53FA /* SpeakerOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C65710423308A0C003C53FA /* SpeakerOutput.swift */; };
 		BC09239E1C92658200A2ADFA /* ShaderProgram_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC09239D1C92658200A2ADFA /* ShaderProgram_Tests.swift */; };
 		BC0923A11C92661D00A2ADFA /* Pipeline_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC09239F1C9265A600A2ADFA /* Pipeline_Tests.swift */; };
 		BC0923A21C92664900A2ADFA /* Framebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCB279EB1C8D11630013E213 /* Framebuffer.swift */; };
@@ -368,6 +380,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0C6570F523307D8C003C53FA /* TPCircularBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TPCircularBuffer.h; sourceTree = "<group>"; };
+		0C6570F623307D8C003C53FA /* GPUImage-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GPUImage-Bridging-Header.h"; sourceTree = "<group>"; };
+		0C6570F723307D8C003C53FA /* NSObject+Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+Exception.h"; sourceTree = "<group>"; };
+		0C6570F823307D8C003C53FA /* TPCircularBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TPCircularBuffer.m; sourceTree = "<group>"; };
+		0C6570F923307D8C003C53FA /* NSObject+Exception.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Exception.m"; sourceTree = "<group>"; };
+		0C65710423308A0C003C53FA /* SpeakerOutput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SpeakerOutput.swift; path = Source/Apple/SpeakerOutput.swift; sourceTree = "<group>"; };
 		BC09239D1C92658200A2ADFA /* ShaderProgram_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShaderProgram_Tests.swift; path = Tests/ShaderProgram_Tests.swift; sourceTree = SOURCE_ROOT; };
 		BC09239F1C9265A600A2ADFA /* Pipeline_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Pipeline_Tests.swift; path = Tests/Pipeline_Tests.swift; sourceTree = SOURCE_ROOT; };
 		BC1E12F41C9F2FD7008F844F /* ThreeInput.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ThreeInput.vsh; path = Source/Operations/Shaders/ThreeInput.vsh; sourceTree = "<group>"; };
@@ -718,6 +736,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0C6570F423307D8C003C53FA /* ObjC */ = {
+			isa = PBXGroup;
+			children = (
+				0C6570F523307D8C003C53FA /* TPCircularBuffer.h */,
+				0C6570F623307D8C003C53FA /* GPUImage-Bridging-Header.h */,
+				0C6570F723307D8C003C53FA /* NSObject+Exception.h */,
+				0C6570F823307D8C003C53FA /* TPCircularBuffer.m */,
+				0C6570F923307D8C003C53FA /* NSObject+Exception.m */,
+			);
+			name = ObjC;
+			path = Source/ObjC;
+			sourceTree = "<group>";
+		};
 		BC1E12F81C9F4C69008F844F /* Blends */ = {
 			isa = PBXGroup;
 			children = (
@@ -954,6 +985,7 @@
 		BC6E7CAD1C39A9D8006DF678 /* Other */ = {
 			isa = PBXGroup;
 			children = (
+				0C6570F423307D8C003C53FA /* ObjC */,
 				BC4C85ED1C9F042900FD95D8 /* ConvertedShaders_GL.swift */,
 				BC9E35531E52521F00B8604F /* ConvertedShaders_GLES.swift */,
 			);
@@ -1134,6 +1166,7 @@
 				BC4EE16E1CB3554200AD8A65 /* RawDataOutput.swift */,
 				BCFB07941CBF399B009B2333 /* TextureOutput.swift */,
 				BCB825BA1CC9C96B00339790 /* Timestamp.swift */,
+				0C65710423308A0C003C53FA /* SpeakerOutput.swift */,
 				BC9E351F1E524D2600B8604F /* Mac */,
 				BC9E35201E524D2A00B8604F /* iOS */,
 			);
@@ -1170,6 +1203,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C6570FE23307D8C003C53FA /* NSObject+Exception.h in Headers */,
+				0C6570FC23307D8C003C53FA /* GPUImage-Bridging-Header.h in Headers */,
+				0C6570FA23307D8C003C53FA /* TPCircularBuffer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1177,6 +1213,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C6570FF23307D8C003C53FA /* NSObject+Exception.h in Headers */,
+				0C6570FD23307D8C003C53FA /* GPUImage-Bridging-Header.h in Headers */,
+				0C6570FB23307D8C003C53FA /* TPCircularBuffer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1419,6 +1458,7 @@
 				BC7FD1611CB0CDDF00037949 /* SepiaToneFilter.swift in Sources */,
 				BCFF46C01CB9556B00A0C521 /* WhiteBalance.swift in Sources */,
 				BC7FD14E1CB0BD3900037949 /* ZoomBlur.swift in Sources */,
+				0C65710223307D8C003C53FA /* NSObject+Exception.m in Sources */,
 				BCFB07921CBF37A1009B2333 /* TextureInput.swift in Sources */,
 				BC38D52F22AEE103000AE4F9 /* PictureOutput.swift in Sources */,
 				BC6E7CC71C39AD9E006DF678 /* ShaderProgram.swift in Sources */,
@@ -1427,6 +1467,7 @@
 				BC8B7A8D1CB5A6C500ACF7AA /* TwoStageOperation.swift in Sources */,
 				BC7FD11C1CB0795A00037949 /* NormalBlend.swift in Sources */,
 				BC4EE15E1CB3481F00AD8A65 /* ThresholdSobelEdgeDetection.swift in Sources */,
+				0C65710523308A0C003C53FA /* SpeakerOutput.swift in Sources */,
 				BC7FD1911CB1D2A300037949 /* ImageGenerator.swift in Sources */,
 				BC7FD1201CB079B200037949 /* SaturationBlend.swift in Sources */,
 				BCA4E2491CC3EF26007B51BA /* ColourFASTFeatureDetection.swift in Sources */,
@@ -1444,6 +1485,7 @@
 				BCBEC0E01CCD492D00B70ED7 /* HistogramEqualization.swift in Sources */,
 				BC7FD0F91CB063B700037949 /* Color.swift in Sources */,
 				BCFF46DF1CBAB66F00A0C521 /* CannyEdgeDetection.swift in Sources */,
+				0C65710023307D8C003C53FA /* TPCircularBuffer.m in Sources */,
 				BCFF46BC1CB8AB1B00A0C521 /* TiltShift.swift in Sources */,
 				BC77295A1CB30B4E004C9E0B /* Convolution3x3.swift in Sources */,
 				BCE111AB1CBC9B1F005293A4 /* MotionDetector.swift in Sources */,
@@ -1601,6 +1643,7 @@
 				BC9E35AC1E52578F00B8604F /* Pixellate.swift in Sources */,
 				BC9E35511E52518F00B8604F /* Timestamp.swift in Sources */,
 				BC9E35781E5256EB00B8604F /* ColorMatrixFilter.swift in Sources */,
+				0C65710323307D8C003C53FA /* NSObject+Exception.m in Sources */,
 				BC38D53022AEE103000AE4F9 /* PictureOutput.swift in Sources */,
 				BC9E35D11E52580400B8604F /* ScreenBlend.swift in Sources */,
 				BC9E356A1E5256C200B8604F /* Haze.swift in Sources */,
@@ -1609,6 +1652,7 @@
 				BC9E35471E524D9A00B8604F /* SolidColorGenerator.swift in Sources */,
 				BC9E356E1E5256CE00B8604F /* FalseColor.swift in Sources */,
 				BC9E35881E52572000B8604F /* ThresholdSobelEdgeDetection.swift in Sources */,
+				0C65710623308A0C003C53FA /* SpeakerOutput.swift in Sources */,
 				BC9E356F1E5256D000B8604F /* HighlightsAndShadows.swift in Sources */,
 				BC9E35AA1E52578900B8604F /* Halftone.swift in Sources */,
 				BC9E35961E52574A00B8604F /* ImageBuffer.swift in Sources */,
@@ -1626,6 +1670,7 @@
 				BC9E35981E52574F00B8604F /* HighPassFilter.swift in Sources */,
 				BC9E35601E52569D00B8604F /* TextureSamplingOperation.swift in Sources */,
 				BC9E35CF1E5257FE00B8604F /* OverlayBlend.swift in Sources */,
+				0C65710123307D8C003C53FA /* TPCircularBuffer.m in Sources */,
 				BC9E35731E5256DB00B8604F /* MonochromeFilter.swift in Sources */,
 				BC9E35A51E52577900B8604F /* Posterize.swift in Sources */,
 				BC9E35BB1E5257BF00B8604F /* iOSBlur.swift in Sources */,
@@ -1769,6 +1814,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Source/ObjC/GPUImage-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1822,6 +1868,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Source/ObjC/GPUImage-Bridging-Header.h";
 				SWIFT_VERSION = 4.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
