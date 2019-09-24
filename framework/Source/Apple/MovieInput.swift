@@ -10,7 +10,7 @@ public class MovieInput: ImageSource {
     
     public weak var delegate: MovieInputDelegate?
     
-    public var audioEncodingTarget:AudioEncodingTarget? {
+    public weak var audioEncodingTarget:AudioEncodingTarget? {
         didSet {
             guard let audioEncodingTarget = audioEncodingTarget else {
                 return
@@ -19,7 +19,7 @@ public class MovieInput: ImageSource {
             
             // Call enableSynchronizedEncoding() again if they didn't set the audioEncodingTarget before setting synchronizedMovieOutput.
             if(synchronizedMovieOutput != nil) {
-                self.enableSynchronizedEncoding()
+                enableSynchronizedEncoding()
             }
         }
     }
@@ -45,16 +45,15 @@ public class MovieInput: ImageSource {
     // Progress block of the video with a paramater value of 0-1.
     // Can be used to check video encoding progress. Not called from main thread.
     public var progress: ((Double) -> Void)?
-    public var playSlider: ((Double, Double) -> Void)?
     
-    public var synchronizedMovieOutput:MovieOutput? {
+    public weak var synchronizedMovieOutput: MovieOutput? {
         didSet {
-            self.enableSynchronizedEncoding()
+            enableSynchronizedEncoding()
         }
     }
     public var synchronizedEncodingDebug = false {
         didSet {
-            self.synchronizedMovieOutput?.synchronizedEncodingDebug = self.synchronizedEncodingDebug
+            synchronizedMovieOutput?.synchronizedEncodingDebug = synchronizedEncodingDebug
         }
     }
     let conditionLock = NSCondition()
@@ -91,43 +90,43 @@ public class MovieInput: ImageSource {
     }
     
     deinit {
-        self.movieFramebuffer?.unlock()
-        self.cancel()
+        movieFramebuffer?.unlock()
+        cancel()
         
-        self.videoInputStatusObserver?.invalidate()
-        self.audioInputStatusObserver?.invalidate()
+        videoInputStatusObserver?.invalidate()
+        audioInputStatusObserver?.invalidate()
     }
     
     // MARK: -
     // MARK: Playback control
     
     public func start(atTime: CMTime) {
-        self.requestedStartTime = atTime
-        self.start()
+        requestedStartTime = atTime
+        start()
     }
     
     @objc public func start() {
-        if let currentThread = self.currentThread,
+        if let currentThread = currentThread,
             currentThread.isExecuting,
             !currentThread.isCancelled {
             // If the current thread is running and has not been cancelled, bail.
             return
         }
         // Cancel the thread just to be safe in the event we somehow get here with the thread still running.
-        self.currentThread?.cancel()
+        currentThread?.cancel()
         
-        self.currentThread = Thread(target: self, selector: #selector(beginReading), object: nil)
-        self.currentThread?.start()
+        currentThread = Thread(target: self, selector: #selector(beginReading), object: nil)
+        currentThread?.start()
     }
     
     public func cancel() {
-        self.currentThread?.cancel()
-        self.currentThread = nil
+        currentThread?.cancel()
+        currentThread = nil
     }
     
     public func pause() {
-        self.cancel()
-        self.requestedStartTime = self.currentTime
+        cancel()
+        requestedStartTime = currentTime
     }
     
     // MARK: -
@@ -139,34 +138,34 @@ public class MovieInput: ImageSource {
             let outputSettings:[String:AnyObject] =
                 [(kCVPixelBufferPixelFormatTypeKey as String):NSNumber(value:Int32(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange))]
             
-            let assetReader = try AVAssetReader.init(asset: self.asset)
+            let assetReader = try AVAssetReader.init(asset: asset)
             
-            if(self.videoComposition == nil) {
-                let readerVideoTrackOutput = AVAssetReaderTrackOutput(track: self.asset.tracks(withMediaType: .video).first!, outputSettings:outputSettings)
+            if(videoComposition == nil) {
+                let readerVideoTrackOutput = AVAssetReaderTrackOutput(track: asset.tracks(withMediaType: .video).first!, outputSettings:outputSettings)
                 readerVideoTrackOutput.alwaysCopiesSampleData = false
                 assetReader.add(readerVideoTrackOutput)
             }
             else {
-                let readerVideoTrackOutput = AVAssetReaderVideoCompositionOutput(videoTracks: self.asset.tracks(withMediaType: .video), videoSettings: outputSettings)
-                readerVideoTrackOutput.videoComposition = self.videoComposition
+                let readerVideoTrackOutput = AVAssetReaderVideoCompositionOutput(videoTracks: asset.tracks(withMediaType: .video), videoSettings: outputSettings)
+                readerVideoTrackOutput.videoComposition = videoComposition
                 readerVideoTrackOutput.alwaysCopiesSampleData = false
                 assetReader.add(readerVideoTrackOutput)
             }
             
-            if let audioTrack = self.asset.tracks(withMediaType: .audio).first,
-                let _ = self.audioEncodingTarget {
+            if let audioTrack = asset.tracks(withMediaType: .audio).first,
+                let _ = audioEncodingTarget {
                 let readerAudioTrackOutput = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: audioSettings)
                 readerAudioTrackOutput.alwaysCopiesSampleData = false
                 assetReader.add(readerAudioTrackOutput)
             }
             
-            self.startTime = self.requestedStartTime
-            if let requestedStartTime = self.requestedStartTime {
+            startTime = requestedStartTime
+            if let requestedStartTime = requestedStartTime {
                 assetReader.timeRange = CMTimeRange(start: requestedStartTime, duration: kCMTimePositiveInfinity)
             }
-            self.requestedStartTime = nil
-            self.currentTime = nil
-            self.actualStartTime = nil
+            requestedStartTime = nil
+            currentTime = nil
+            actualStartTime = nil
             
             return assetReader
         } catch {
@@ -181,7 +180,7 @@ public class MovieInput: ImageSource {
         mach_timebase_info(&timebaseInfo)
         
         if(useRealtimeThreads) {
-            self.configureThread()
+            configureThread()
         }
         else if(playAtActualSpeed) {
             thread.qualityOfService = .userInitiated
@@ -191,7 +190,7 @@ public class MovieInput: ImageSource {
             thread.qualityOfService = .default
         }
         
-        guard let assetReader = self.createReader() else {
+        guard let assetReader = createReader() else {
             return // A return statement in this frame will end thread execution.
         }
         
@@ -221,31 +220,33 @@ public class MovieInput: ImageSource {
         }
         
         while(assetReader.status == .reading) {
-            if(thread.isCancelled) { break }
+            if (thread.isCancelled) {
+                break
+            }
             
-            if let movieOutput = self.synchronizedMovieOutput {
-                self.conditionLock.lock()
-                if(self.readingShouldWait) {
-                    self.synchronizedEncodingDebugPrint("Disable reading")
-                    self.conditionLock.wait()
-                    self.synchronizedEncodingDebugPrint("Enable reading")
+            if let movieOutput = synchronizedMovieOutput {
+                conditionLock.lock()
+                if(readingShouldWait) {
+                    synchronizedEncodingDebugPrint("Disable reading")
+                    conditionLock.wait()
+                    synchronizedEncodingDebugPrint("Enable reading")
                 }
-                self.conditionLock.unlock()
+                conditionLock.unlock()
                 
                 if(movieOutput.assetWriterVideoInput.isReadyForMoreMediaData) {
-                    self.readNextVideoFrame(with: assetReader, from: readerVideoTrackOutput!)
+                    readNextVideoFrame(with: assetReader, from: readerVideoTrackOutput!)
                 }
                 if(movieOutput.assetWriterAudioInput?.isReadyForMoreMediaData ?? false) {
                     if let readerAudioTrackOutput = readerAudioTrackOutput {
-                        self.readNextAudioSample(with: assetReader, from: readerAudioTrackOutput)
+                        readNextAudioSample(with: assetReader, from: readerAudioTrackOutput)
                     }
                 }
             }
             else {
-                self.readNextVideoFrame(with: assetReader, from: readerVideoTrackOutput!)
+                readNextVideoFrame(with: assetReader, from: readerVideoTrackOutput!)
                 if let readerAudioTrackOutput = readerAudioTrackOutput,
-                    self.audioEncodingTarget?.readyForNextAudioBuffer() ?? true {
-                    self.readNextAudioSample(with: assetReader, from: readerAudioTrackOutput)
+                    audioEncodingTarget?.readyForNextAudioBuffer() ?? true {
+                    readNextAudioSample(with: assetReader, from: readerAudioTrackOutput)
                 }
             }
         }
@@ -254,18 +255,22 @@ public class MovieInput: ImageSource {
         
         // Since only the main thread will cancel and create threads jump onto it to prevent
         // the current thread from being cancelled in between the below if statement and creating the new thread.
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let weakSelf = self else {
+                print("Weak self - return")
+                return
+            }
             // Start the video over so long as it wasn't cancelled.
-            if (self.loop && !thread.isCancelled) {
-                self.currentThread = Thread(target: self, selector: #selector(self.beginReading), object: nil)
-                self.currentThread?.start()
+            if (weakSelf.loop && !thread.isCancelled) {
+                weakSelf.currentThread = Thread(target: weakSelf, selector: #selector(weakSelf.beginReading), object: nil)
+                weakSelf.currentThread?.start()
             }
             else {
-                self.delegate?.didFinishMovie()
-                self.completion?()
+                weakSelf.delegate?.didFinishMovie()
+                weakSelf.completion?()
                 
-                self.synchronizedEncodingDebugPrint("MovieInput finished reading")
-                self.synchronizedEncodingDebugPrint("MovieInput total frames sent: \(self.totalFramesSent)")
+                weakSelf.synchronizedEncodingDebugPrint("MovieInput finished reading")
+                weakSelf.synchronizedEncodingDebugPrint("MovieInput total frames sent: \(weakSelf.totalFramesSent)")
             }
         }
     }
@@ -285,12 +290,12 @@ public class MovieInput: ImageSource {
         }
         
         
-        self.synchronizedEncodingDebugPrint("Process frame input")
+        synchronizedEncodingDebugPrint("Process frame input")
         
         var currentSampleTime = CMSampleBufferGetOutputPresentationTimeStamp(sampleBuffer)
-        var duration = self.asset.duration // Only used for the progress block so its acuracy is not critical
+        var duration = asset.duration // Only used for the progress block so its acuracy is not critical
         
-        self.currentTime = currentSampleTime
+        currentTime = currentSampleTime
         
         if let startTime = self.startTime {
             // Make sure our samples start at kCMTimeZero if the video was started midway.
@@ -298,7 +303,7 @@ public class MovieInput: ImageSource {
             duration = CMTimeSubtract(duration, startTime)
         }
         
-        if (self.playAtActualSpeed) {
+        if (playAtActualSpeed) {
             let currentSampleTimeNanoseconds = Int64(currentSampleTime.seconds * 1_000_000_000)
             let currentActualTime = DispatchTime.now()
             
@@ -311,7 +316,7 @@ public class MovieInput: ImageSource {
             //print("currentSampleTime: \(currentSampleTimeNanoseconds) currentTime: \((currentActualTime.uptimeNanoseconds-self.actualStartTime!.uptimeNanoseconds)) delay: \(delay)")
             
             if(delay > 0) {
-                mach_wait_until(mach_absolute_time()+self.nanosToAbs(UInt64(delay)))
+                mach_wait_until(mach_absolute_time() + self.nanosToAbs(UInt64(delay)))
             }
             else {
                 // This only happens if we aren't given enough processing time for playback
@@ -323,11 +328,10 @@ public class MovieInput: ImageSource {
             }
         }
         
-        self.progress?(currentSampleTime.seconds/duration.seconds)
-        playSlider?(currentSampleTime.seconds, duration.seconds)
+        progress?(currentSampleTime.seconds/duration.seconds)
         
-        sharedImageProcessingContext.runOperationSynchronously{
-            self.process(movieFrame:sampleBuffer)
+        sharedImageProcessingContext.runOperationSynchronously {
+            process(movieFrame:sampleBuffer)
             CMSampleBufferInvalidate(sampleBuffer)
         }
     }
@@ -343,16 +347,16 @@ public class MovieInput: ImageSource {
             return
         }
         
-        self.synchronizedEncodingDebugPrint("Process audio sample input")
+        synchronizedEncodingDebugPrint("Process audio sample input")
         
-        self.audioEncodingTarget?.processAudioBuffer(sampleBuffer, shouldInvalidateSampleWhenDone: true)
+        audioEncodingTarget?.processAudioBuffer(sampleBuffer, shouldInvalidateSampleWhenDone: true)
     }
     
     func process(movieFrame frame:CMSampleBuffer) {
         let currentSampleTime = CMSampleBufferGetOutputPresentationTimeStamp(frame)
         let movieFrame = CMSampleBufferGetImageBuffer(frame)!
         
-        self.process(movieFrame:movieFrame, withSampleTime:currentSampleTime)
+        process(movieFrame:movieFrame, withSampleTime:currentSampleTime)
     }
     
     func process(movieFrame:CVPixelBuffer, withSampleTime:CMTime) {
@@ -435,15 +439,15 @@ public class MovieInput: ImageSource {
         movieFramebuffer.userInfo = self.framebufferUserInfo
         self.movieFramebuffer = movieFramebuffer
         
-        self.updateTargetsWithFramebuffer(movieFramebuffer)
+        updateTargetsWithFramebuffer(movieFramebuffer)
         
-        if(self.runBenchmark || self.synchronizedEncodingDebug) {
-            self.totalFramesSent += 1
+        if(runBenchmark || synchronizedEncodingDebug) {
+            totalFramesSent += 1
         }
         
-        if self.runBenchmark {
+        if (runBenchmark) {
             let currentFrameTime = (CFAbsoluteTimeGetCurrent() - startTime)
-            self.totalFrameTimeDuringCapture += currentFrameTime
+            totalFrameTimeDuringCapture += currentFrameTime
             print("Average frame time : \(1000.0 * self.totalFrameTimeDuringCapture / Double(self.totalFramesSent)) ms")
             print("Current frame time : \(1000.0 * currentFrameTime) ms")
         }
@@ -454,9 +458,9 @@ public class MovieInput: ImageSource {
     }
     
     public func transmitPreviousFrame() {
-        sharedImageProcessingContext.runOperationAsynchronously {
-            if let movieFramebuffer = self.movieFramebuffer {
-                self.updateTargetsWithFramebuffer(movieFramebuffer)
+        sharedImageProcessingContext.runOperationAsynchronously { [weak self] in
+            if let movieFramebuffer = self?.movieFramebuffer {
+                self?.updateTargetsWithFramebuffer(movieFramebuffer)
             }
         }
     }
@@ -465,46 +469,52 @@ public class MovieInput: ImageSource {
     // MARK: Synchronized encoding
     
     func enableSynchronizedEncoding() {
-        self.synchronizedMovieOutput?.encodingLiveVideo = false
-        self.synchronizedMovieOutput?.synchronizedEncodingDebug = self.synchronizedEncodingDebug
-        self.playAtActualSpeed = false
-        self.loop = false
+        synchronizedMovieOutput?.encodingLiveVideo = false
+        synchronizedMovieOutput?.synchronizedEncodingDebug = synchronizedEncodingDebug
+        playAtActualSpeed = false
+        loop = false
         
         // Subscribe to isReadyForMoreMediaData changes
-        self.setupObservers()
+        setupObservers()
         // Set the intial state of the lock
-        self.updateLock()
+        updateLock()
     }
     
     func setupObservers() {
-        self.videoInputStatusObserver?.invalidate()
-        self.audioInputStatusObserver?.invalidate()
+        videoInputStatusObserver?.invalidate()
+        audioInputStatusObserver?.invalidate()
         
-        guard let movieOutput = self.synchronizedMovieOutput else { return }
+        guard let movieOutput = synchronizedMovieOutput else { return }
         
-        self.videoInputStatusObserver = movieOutput.assetWriterVideoInput.observe(\.isReadyForMoreMediaData, options: [.new, .old]) { [weak self] (assetWriterVideoInput, change) in
-            guard let weakSelf = self else { return }
+        videoInputStatusObserver = movieOutput.assetWriterVideoInput.observe(\.isReadyForMoreMediaData, options: [.new, .old]) { [weak self] (assetWriterVideoInput, change) in
+            guard let weakSelf = self else {
+                return
+            }
             weakSelf.updateLock()
         }
-        self.audioInputStatusObserver = movieOutput.assetWriterAudioInput?.observe(\.isReadyForMoreMediaData, options: [.new, .old]) { [weak self] (assetWriterAudioInput, change) in
-            guard let weakSelf = self else { return }
+        audioInputStatusObserver = movieOutput.assetWriterAudioInput?.observe(\.isReadyForMoreMediaData, options: [.new, .old]) { [weak self] (assetWriterAudioInput, change) in
+            guard let weakSelf = self else {
+                return
+            }
             weakSelf.updateLock()
         }
     }
     
     func updateLock() {
-        guard let movieOutput = self.synchronizedMovieOutput else { return }
+        guard let movieOutput = synchronizedMovieOutput else {
+            return
+        }
         
-        self.conditionLock.lock()
+        conditionLock.lock()
         // Allow reading if either input is able to accept data, prevent reading if both inputs are unable to accept data.
         if(movieOutput.assetWriterVideoInput.isReadyForMoreMediaData || movieOutput.assetWriterAudioInput?.isReadyForMoreMediaData ?? false) {
-            self.readingShouldWait = false
-            self.conditionLock.signal()
+            readingShouldWait = false
+            conditionLock.signal()
         }
         else {
-            self.readingShouldWait = true
+            readingShouldWait = true
         }
-        self.conditionLock.unlock()
+        conditionLock.unlock()
     }
     
     // MARK: -
@@ -558,6 +568,8 @@ public class MovieInput: ImageSource {
     }
     
     func synchronizedEncodingDebugPrint(_ string: String) {
-        if(synchronizedMovieOutput != nil && synchronizedEncodingDebug) { print(string) }
+        if(synchronizedMovieOutput != nil && synchronizedEncodingDebug) {
+            print(string)            
+        }
     }
 }
