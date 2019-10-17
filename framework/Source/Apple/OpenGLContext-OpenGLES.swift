@@ -27,6 +27,16 @@ public class OpenGLContext: SerialDispatch {
         return newTextureCache!
     }()
     
+    public var isUsingCache: Bool = true {
+        didSet {
+            framebufferCache.isUsingCache = isUsingCache
+        }
+    }
+    
+    public func clearBufferCache() {
+        shaderCache = [:]
+        framebufferCache.purgeAllUnassignedFramebuffers()
+    }
     
     public let serialDispatchQueue:DispatchQueue = DispatchQueue(label:"com.sunsetlakesoftware.GPUImage.processingQueue", qos: .userInitiated)
     public let dispatchQueueKey = DispatchSpecificKey<Int>()

@@ -20,6 +20,8 @@ public class FramebufferCache {
     var framebufferCache = [Int64:[Framebuffer]]()
     let context:OpenGLContext
     
+    var isUsingCache: Bool = true
+    
     init(context:OpenGLContext) {
         self.context = context
     }
@@ -50,11 +52,13 @@ public class FramebufferCache {
     
     func returnToCache(_ framebuffer:Framebuffer) {
 //        print("Returning to cache: \(framebuffer)")
-        context.runOperationSynchronously{
-            if (self.framebufferCache[framebuffer.hash] != nil) {
-                self.framebufferCache[framebuffer.hash]!.append(framebuffer)
-            } else {
-                self.framebufferCache[framebuffer.hash] = [framebuffer]
+        if isUsingCache {
+            context.runOperationSynchronously{
+                if (self.framebufferCache[framebuffer.hash] != nil) {
+                    self.framebufferCache[framebuffer.hash]!.append(framebuffer)
+                } else {
+                    self.framebufferCache[framebuffer.hash] = [framebuffer]
+                }
             }
         }
     }
