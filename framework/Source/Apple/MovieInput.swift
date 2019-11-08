@@ -4,6 +4,11 @@ public protocol MovieInputDelegate: class {
     func didFinishMovie()
 }
 
+public struct MovieInputTimeRange {
+    let startTime   : CMTime
+    let duration    : CMTime
+}
+
 public class MovieInput: ImageSource {
     public let targets = TargetContainer()
     public var runBenchmark = false
@@ -29,6 +34,16 @@ public class MovieInput: ImageSource {
     let videoComposition:AVVideoComposition?
     var playAtActualSpeed:Bool
     
+    private var timeRange: MovieInputTimeRange?
+    public var movieOrientation: ImageOrientation
+    public var isTrimming: Bool
+    public var trimStartTime: CMTime? {
+        didSet {
+            requestedStartTime = trimStartTime
+        }
+    }
+    public var trimDuration: CMTime?
+    
     // Time in the video where it should start.
     var requestedStartTime:CMTime?
     // Time in the video where it started.
@@ -41,10 +56,10 @@ public class MovieInput: ImageSource {
     public var loop:Bool
     
     // Called after the video finishes. Not called when cancel() or pause() is called.
-    public var completion: (() -> Void)?
+    public var completion: ((Double) -> Void)?
     // Progress block of the video with a paramater value of 0-1.
     // Can be used to check video encoding progress. Not called from main thread.
-    public var progress: ((Double) -> Void)?
+    public var progress: ((Double, Double) -> Void)?
     
     public weak var synchronizedMovieOutput: MovieOutput? {
         didSet {
@@ -81,6 +96,8 @@ public class MovieInput: ImageSource {
         self.loop = loop
         self.yuvConversionShader = crashOnShaderCompileFailure("MovieInput"){try sharedImageProcessingContext.programForVertexShader(defaultVertexShaderForInputs(2), fragmentShader:YUVConversionFullRangeFragmentShader)}
         self.audioSettings = audioSettings
+        self.isTrimming = false
+        self.movieOrientation = .portrait
     }
     
     public convenience init(url:URL, playAtActualSpeed:Bool = false, loop:Bool = false, audioSettings:[String:Any]? = nil) throws {
@@ -99,6 +116,17 @@ public class MovieInput: ImageSource {
     
     // MARK: -
     // MARK: Playback control
+    
+    public func start(atTime: CMTime, duration: CMTime? = nil, isTrimming: Bool = false) {
+        if !isTrimming {
+            requestedStartTime = atTime
+        } else {
+            trimStartTime = atTime
+            trimDuration = duration
+        }
+        
+        self.start()
+    }
     
     public func start(atTime: CMTime) {
         requestedStartTime = atTime
@@ -127,6 +155,27 @@ public class MovieInput: ImageSource {
     public func pause() {
         cancel()
         requestedStartTime = currentTime
+    }
+    
+    public func seekToTime(_ time: CMTime) {
+        pause()
+        start(atTime: time)
+    }
+    
+    public func pauseWithoutCancel() {
+        requestedStartTime = currentTime
+        conditionLock.lock()
+        readingShouldWait = true
+        conditionLock.unlock()
+        synchronizedEncodingDebugPrint("MovieInput pauseWithoutCancel")
+    }
+    
+    public func resume() {
+        conditionLock.lock()
+        readingShouldWait = false
+        conditionLock.signal()
+        conditionLock.unlock()
+        synchronizedEncodingDebugPrint("MovieInput resume")
     }
     
     // MARK: -
@@ -160,8 +209,12 @@ public class MovieInput: ImageSource {
             }
             
             startTime = requestedStartTime
-            if let requestedStartTime = requestedStartTime {
-                assetReader.timeRange = CMTimeRange(start: requestedStartTime, duration: kCMTimePositiveInfinity)
+            if let startTime = requestedStartTime ?? trimStartTime {
+                if let trimmedDuration = trimDuration, trimmedDuration.seconds > 0, CMTimeAdd(startTime, trimmedDuration) <= asset.duration {
+                    assetReader.timeRange = CMTimeRange(start: startTime, duration: trimmedDuration)
+                } else {
+                    assetReader.timeRange = CMTimeRange(start: startTime, duration: kCMTimePositiveInfinity)
+                }
             }
             requestedStartTime = nil
             currentTime = nil
@@ -267,7 +320,15 @@ public class MovieInput: ImageSource {
             }
             else {
                 weakSelf.delegate?.didFinishMovie()
-                weakSelf.completion?()
+                var duration = weakSelf.asset.duration
+                if let startTime = weakSelf.startTime {
+                    if let trimmedDuration = weakSelf.trimDuration, startTime.seconds > 0, CMTimeAdd(startTime, trimmedDuration) <= duration {
+                        duration = trimmedDuration
+                    } else {
+                        duration = CMTimeSubtract(duration, startTime)
+                    }
+                }
+                weakSelf.completion?(duration.seconds)
                 
                 weakSelf.synchronizedEncodingDebugPrint("MovieInput finished reading")
                 weakSelf.synchronizedEncodingDebugPrint("MovieInput total frames sent: \(weakSelf.totalFramesSent)")
@@ -289,7 +350,6 @@ public class MovieInput: ImageSource {
             return
         }
         
-        
         synchronizedEncodingDebugPrint("Process frame input")
         
         var currentSampleTime = CMSampleBufferGetOutputPresentationTimeStamp(sampleBuffer)
@@ -300,7 +360,11 @@ public class MovieInput: ImageSource {
         if let startTime = self.startTime {
             // Make sure our samples start at kCMTimeZero if the video was started midway.
             currentSampleTime = CMTimeSubtract(currentSampleTime, startTime)
-            duration = CMTimeSubtract(duration, startTime)
+            if let trimmedDuration = trimDuration, startTime.seconds > 0, CMTimeAdd(startTime, trimmedDuration) <= duration {
+                duration = trimmedDuration
+            } else {
+                duration = CMTimeSubtract(duration, startTime)
+            }
         }
         
         if (playAtActualSpeed) {
@@ -328,7 +392,7 @@ public class MovieInput: ImageSource {
             }
         }
         
-        progress?(currentSampleTime.seconds/duration.seconds)
+        progress?(currentSampleTime.seconds, duration.seconds)
         
         sharedImageProcessingContext.runOperationSynchronously {
             process(movieFrame:sampleBuffer)
@@ -397,7 +461,7 @@ public class MovieInput: ImageSource {
         
         let luminanceFramebuffer: Framebuffer
         do {
-            luminanceFramebuffer = try Framebuffer(context: sharedImageProcessingContext, orientation: .portrait, size: GLSize(width:GLint(bufferWidth), height:GLint(bufferHeight)), textureOnly: true, overriddenTexture: luminanceTexture)
+            luminanceFramebuffer = try Framebuffer(context: sharedImageProcessingContext, orientation: movieOrientation, size: GLSize(width:GLint(bufferWidth), height:GLint(bufferHeight)), textureOnly: true, overriddenTexture: luminanceTexture)
         } catch {
             print("Could not create a framebuffer of the size (\(bufferWidth), \(bufferHeight)), error: \(error)")
             return
@@ -422,14 +486,14 @@ public class MovieInput: ImageSource {
         
         let chrominanceFramebuffer: Framebuffer
         do {
-            chrominanceFramebuffer = try Framebuffer(context: sharedImageProcessingContext, orientation: .portrait, size: GLSize(width:GLint(bufferWidth), height:GLint(bufferHeight)), textureOnly: true, overriddenTexture: chrominanceTexture)
+            chrominanceFramebuffer = try Framebuffer(context: sharedImageProcessingContext, orientation: movieOrientation, size: GLSize(width:GLint(bufferWidth), height:GLint(bufferHeight)), textureOnly: true, overriddenTexture: chrominanceTexture)
         } catch {
             print("Could not create a framebuffer of the size (\(bufferWidth), \(bufferHeight)), error: \(error)")
             return
         }
         
         self.movieFramebuffer?.unlock()
-        let movieFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation:.portrait, size:GLSize(width:GLint(bufferWidth), height:GLint(bufferHeight)), textureOnly:false)
+        let movieFramebuffer = sharedImageProcessingContext.framebufferCache.requestFramebufferWithProperties(orientation: movieOrientation, size:GLSize(width:GLint(bufferWidth), height:GLint(bufferHeight)), textureOnly:false)
         movieFramebuffer.lock()
         
         convertYUVToRGB(shader:self.yuvConversionShader, luminanceFramebuffer:luminanceFramebuffer, chrominanceFramebuffer:chrominanceFramebuffer, resultFramebuffer:movieFramebuffer, colorConversionMatrix:conversionMatrix)

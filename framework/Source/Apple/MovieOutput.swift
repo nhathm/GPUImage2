@@ -58,6 +58,8 @@ public class MovieOutput: ImageConsumer, AudioEncodingTarget {
     var synchronizedEncodingDebug = false
     var totalFramesAppended:Int = 0
     
+    public var videoOrientation: ImageOrientation
+    
     public init(URL:Foundation.URL, size:Size, fileType:AVFileType = .mov, liveVideo:Bool = false, videoSettings:[String:Any]? = nil, videoNaturalTimeScale:CMTimeScale? = nil, audioSettings:[String:Any]? = nil, audioSourceFormatHint:CMFormatDescription? = nil) throws {
         imageProcessingShareGroup = sharedImageProcessingContext.context.sharegroup
         let movieProcessingContext = OpenGLContext()
@@ -112,6 +114,8 @@ public class MovieOutput: ImageConsumer, AudioEncodingTarget {
         self.audioSourceFormatHint = audioSourceFormatHint
         
         self.movieProcessingContext = movieProcessingContext
+        
+        self.videoOrientation = .portrait
     }
     
     public func startRecording(transform:CGAffineTransform? = nil, _ completionCallback:((_ started: Bool, _ error: Error?) -> Void)? = nil) {
@@ -283,7 +287,7 @@ public class MovieOutput: ImageConsumer, AudioEncodingTarget {
         let _ = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault, self.movieProcessingContext.coreVideoTextureCache, pixelBuffer, nil, GLenum(GL_TEXTURE_2D), GL_RGBA, bufferSize.width, bufferSize.height, GLenum(GL_BGRA), GLenum(GL_UNSIGNED_BYTE), 0, &cachedTextureRef)
         let cachedTexture = CVOpenGLESTextureGetName(cachedTextureRef!)
         
-        renderFramebuffer = try Framebuffer(context:self.movieProcessingContext, orientation:.portrait, size:bufferSize, textureOnly:false, overriddenTexture:cachedTexture)
+        renderFramebuffer = try Framebuffer(context:self.movieProcessingContext, orientation:videoOrientation, size:bufferSize, textureOnly:false, overriddenTexture:cachedTexture)
         
         renderFramebuffer.activateFramebufferForRendering()
         clearFramebufferWithColor(Color.black)
