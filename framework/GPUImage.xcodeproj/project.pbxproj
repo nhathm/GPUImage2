@@ -19,6 +19,10 @@
 		0C65710323307D8C003C53FA /* NSObject+Exception.m in Sources */ = {isa = PBXBuildFile; fileRef = 0C6570F923307D8C003C53FA /* NSObject+Exception.m */; };
 		0C65710523308A0C003C53FA /* SpeakerOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C65710423308A0C003C53FA /* SpeakerOutput.swift */; };
 		0C65710623308A0C003C53FA /* SpeakerOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C65710423308A0C003C53FA /* SpeakerOutput.swift */; };
+		0CED4D842362B058009B6490 /* CVPixelBufferInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CED4D832362B057009B6490 /* CVPixelBufferInput.swift */; };
+		0CED4D852362B058009B6490 /* CVPixelBufferInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CED4D832362B057009B6490 /* CVPixelBufferInput.swift */; };
+		0CED4D872362D2AA009B6490 /* FrameBufferGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CED4D862362D2AA009B6490 /* FrameBufferGenerator.swift */; };
+		0CED4D882362D2AA009B6490 /* FrameBufferGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CED4D862362D2AA009B6490 /* FrameBufferGenerator.swift */; };
 		BC09239E1C92658200A2ADFA /* ShaderProgram_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC09239D1C92658200A2ADFA /* ShaderProgram_Tests.swift */; };
 		BC0923A11C92661D00A2ADFA /* Pipeline_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC09239F1C9265A600A2ADFA /* Pipeline_Tests.swift */; };
 		BC0923A21C92664900A2ADFA /* Framebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCB279EB1C8D11630013E213 /* Framebuffer.swift */; };
@@ -386,6 +390,8 @@
 		0C6570F823307D8C003C53FA /* TPCircularBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TPCircularBuffer.m; sourceTree = "<group>"; };
 		0C6570F923307D8C003C53FA /* NSObject+Exception.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Exception.m"; sourceTree = "<group>"; };
 		0C65710423308A0C003C53FA /* SpeakerOutput.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SpeakerOutput.swift; path = Source/Apple/SpeakerOutput.swift; sourceTree = "<group>"; };
+		0CED4D832362B057009B6490 /* CVPixelBufferInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CVPixelBufferInput.swift; path = Source/Apple/CVPixelBufferInput.swift; sourceTree = "<group>"; };
+		0CED4D862362D2AA009B6490 /* FrameBufferGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FrameBufferGenerator.swift; path = Source/Apple/FrameBufferGenerator.swift; sourceTree = "<group>"; };
 		BC09239D1C92658200A2ADFA /* ShaderProgram_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShaderProgram_Tests.swift; path = Tests/ShaderProgram_Tests.swift; sourceTree = SOURCE_ROOT; };
 		BC09239F1C9265A600A2ADFA /* Pipeline_Tests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Pipeline_Tests.swift; path = Tests/Pipeline_Tests.swift; sourceTree = SOURCE_ROOT; };
 		BC1E12F41C9F2FD7008F844F /* ThreeInput.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = ThreeInput.vsh; path = Source/Operations/Shaders/ThreeInput.vsh; sourceTree = "<group>"; };
@@ -1135,6 +1141,8 @@
 				BC7FD1901CB1D2A300037949 /* ImageGenerator.swift */,
 				BC7FD1951CB1F47D00037949 /* SolidColorGenerator.swift */,
 				BC7FD1981CB1FB3B00037949 /* CrosshairGenerator.swift */,
+				0CED4D832362B057009B6490 /* CVPixelBufferInput.swift */,
+				0CED4D862362D2AA009B6490 /* FrameBufferGenerator.swift */,
 				BC7FD19B1CB203A100037949 /* Crosshair.vsh */,
 				BC7FD19A1CB203A100037949 /* Crosshair_GL.fsh */,
 				BC9E35491E524DC100B8604F /* Crosshair_GLES.fsh */,
@@ -1428,6 +1436,7 @@
 				BC7FD1141CB078C200037949 /* LightenBlend.swift in Sources */,
 				BC2C48041CB80E860085E4BC /* Crop.swift in Sources */,
 				BC1E12FA1C9F4CAB008F844F /* DissolveBlend.swift in Sources */,
+				0CED4D842362B058009B6490 /* CVPixelBufferInput.swift in Sources */,
 				BC7FD0B91CA7793500037949 /* CGAColorspaceFilter.swift in Sources */,
 				BCFF46B41CB756B800A0C521 /* SmoothToonFilter.swift in Sources */,
 				BC7FD15D1CB0CCD000037949 /* ColorMatrixFilter.swift in Sources */,
@@ -1491,6 +1500,7 @@
 				BCE111AB1CBC9B1F005293A4 /* MotionDetector.swift in Sources */,
 				BCFF468A1CB73E1400A0C521 /* Erosion.swift in Sources */,
 				BC7FD1521CB0C12D00037949 /* LookupFilter.swift in Sources */,
+				0CED4D872362D2AA009B6490 /* FrameBufferGenerator.swift in Sources */,
 				BC7FD15A1CB0C77900037949 /* Matrix.swift in Sources */,
 				BC7FD1241CB07A0100037949 /* SoftLightBlend.swift in Sources */,
 				BC4EE1521CB3445500AD8A65 /* SobelEdgeDetection.swift in Sources */,
@@ -1613,6 +1623,7 @@
 				BC9E359F1E52576500B8604F /* TransformOperation.swift in Sources */,
 				BC9E35951E52574700B8604F /* Crop.swift in Sources */,
 				BC9E35321E524D7600B8604F /* SerialDispatch.swift in Sources */,
+				0CED4D852362B058009B6490 /* CVPixelBufferInput.swift in Sources */,
 				BC9E35651E5256B500B8604F /* ExposureAdjustment.swift in Sources */,
 				BC9E35821E52570D00B8604F /* Laplacian.swift in Sources */,
 				BC9E35B91E5257B900B8604F /* TiltShift.swift in Sources */,
@@ -1676,6 +1687,7 @@
 				BC9E35BB1E5257BF00B8604F /* iOSBlur.swift in Sources */,
 				BC9E35A11E52576A00B8604F /* ColourFASTFeatureDetection.swift in Sources */,
 				BC9E35661E5256B800B8604F /* ContrastAdjustment.swift in Sources */,
+				0CED4D882362D2AA009B6490 /* FrameBufferGenerator.swift in Sources */,
 				BC9E35891E52572300B8604F /* Histogram.swift in Sources */,
 				BC9E35971E52574C00B8604F /* LowPassFilter.swift in Sources */,
 				BC9E356C1E5256C700B8604F /* HueAdjustment.swift in Sources */,
