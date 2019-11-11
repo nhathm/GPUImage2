@@ -88,6 +88,8 @@ public class MovieInput: ImageSource {
     var movieFramebuffer:Framebuffer?
     public var framebufferUserInfo:[AnyHashable:Any]?
     
+    private var isPause = false
+    
     // TODO: Someone will have to add back in the AVPlayerItem logic, because I don't know how that works
     public init(asset:AVAsset, videoComposition: AVVideoComposition?, playAtActualSpeed:Bool = false, loop:Bool = false, audioSettings:[String:Any]? = nil) throws {
         self.asset = asset
@@ -155,6 +157,7 @@ public class MovieInput: ImageSource {
     public func pause() {
         cancel()
         requestedStartTime = currentTime
+        isPause = true
     }
     
     public func seekToTime(_ time: CMTime) {
@@ -228,6 +231,7 @@ public class MovieInput: ImageSource {
     }
     
     @objc func beginReading() {
+        isPause = false
         let thread = Thread.current
         
         mach_timebase_info(&timebaseInfo)
@@ -328,7 +332,9 @@ public class MovieInput: ImageSource {
                         duration = CMTimeSubtract(duration, startTime)
                     }
                 }
-                weakSelf.completion?(duration.seconds)
+                if (weakSelf.isPause == false) {
+                    weakSelf.completion?(duration.seconds)
+                }
                 
                 weakSelf.synchronizedEncodingDebugPrint("MovieInput finished reading")
                 weakSelf.synchronizedEncodingDebugPrint("MovieInput total frames sent: \(weakSelf.totalFramesSent)")
