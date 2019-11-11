@@ -1,4 +1,5 @@
 import AVFoundation
+import UIKit
 
 public protocol MovieInputDelegate: class {
     func didFinishMovie()
@@ -91,7 +92,7 @@ public class MovieInput: ImageSource {
     private var feedFilterTimer: Timer?
     public var continueFilterAfterFinishedReadingAsset = false
     public var framebufferUserInfo:[AnyHashable:Any]?
-    
+    private var isAppResignActive = false
     private var isPause = false
     
     // TODO: Someone will have to add back in the AVPlayerItem logic, because I don't know how that works
@@ -104,6 +105,10 @@ public class MovieInput: ImageSource {
         self.audioSettings = audioSettings
         self.isTrimming = false
         self.movieOrientation = .portrait
+        
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(appResignActive), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
+        notificationCenter.addObserver(self, selector: #selector(appBecomeActive), name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
     }
     
     public convenience init(url:URL, playAtActualSpeed:Bool = false, loop:Bool = false, audioSettings:[String:Any]? = nil) throws {
@@ -120,6 +125,8 @@ public class MovieInput: ImageSource {
         audioInputStatusObserver?.invalidate()
         
         invalidFeedTimer()
+        
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: -
@@ -659,9 +666,11 @@ public class MovieInput: ImageSource {
     private func continueFilterWhenPause() {
         if #available(iOS 10.0, *) {
             feedFilterTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { [weak self] (timer) in
-                print("feed filter")
+                if (self?.isAppResignActive == true) {
+                    return
+                }
+                
                 if let frameBuffer = self?.feedFilterFrameBuffer {
-                    print("feed")
                     self?.updateTargetsWithFramebuffer(frameBuffer)
                 }
             })
@@ -681,5 +690,15 @@ public class MovieInput: ImageSource {
             feedFilterTimer!.invalidate()
             feedFilterTimer = nil
         }
+    }
+    
+    @objc private func appResignActive() {
+        print("App resign active")
+        isAppResignActive = true
+    }
+    
+    @objc private func appBecomeActive() {
+        print("App become active")
+        isAppResignActive = false
     }
 }
