@@ -86,6 +86,10 @@ public class MovieInput: ImageSource {
     var audioSettings:[String:Any]?
     
     var movieFramebuffer:Framebuffer?
+    
+    private var feedFilterFrameBuffer: Framebuffer?
+    private var feedFilterTimer: Timer?
+    public var continueFilterAfterFinishedReadingAsset = false
     public var framebufferUserInfo:[AnyHashable:Any]?
     
     private var isPause = false
@@ -114,6 +118,8 @@ public class MovieInput: ImageSource {
         
         videoInputStatusObserver?.invalidate()
         audioInputStatusObserver?.invalidate()
+        
+        invalidFeedTimer()
     }
     
     // MARK: -
@@ -136,6 +142,8 @@ public class MovieInput: ImageSource {
     }
     
     @objc public func start() {
+        cancelFeedFrameForFilter()
+        
         if let currentThread = currentThread,
             currentThread.isExecuting,
             !currentThread.isCancelled {
@@ -158,6 +166,7 @@ public class MovieInput: ImageSource {
         cancel()
         requestedStartTime = currentTime
         isPause = true
+        continueFilterWhenPause()
     }
     
     public func seekToTime(_ time: CMTime) {
@@ -334,6 +343,9 @@ public class MovieInput: ImageSource {
                 }
                 if (weakSelf.isPause == false) {
                     weakSelf.completion?(duration.seconds)
+                    if weakSelf.continueFilterAfterFinishedReadingAsset == true {
+                        weakSelf.continueFilterWhenPause()
+                    }
                 }
                 
                 weakSelf.synchronizedEncodingDebugPrint("MovieInput finished reading")
@@ -509,6 +521,7 @@ public class MovieInput: ImageSource {
         movieFramebuffer.userInfo = self.framebufferUserInfo
         self.movieFramebuffer = movieFramebuffer
         
+        feedFilterFrameBuffer = movieFramebuffer
         updateTargetsWithFramebuffer(movieFramebuffer)
         
         if(runBenchmark || synchronizedEncodingDebug) {
@@ -640,6 +653,33 @@ public class MovieInput: ImageSource {
     func synchronizedEncodingDebugPrint(_ string: String) {
         if(synchronizedMovieOutput != nil && synchronizedEncodingDebug) {
             print(string)            
+        }
+    }
+    
+    private func continueFilterWhenPause() {
+        if #available(iOS 10.0, *) {
+            feedFilterTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { [weak self] (timer) in
+                print("feed filter")
+                if let frameBuffer = self?.feedFilterFrameBuffer {
+                    print("feed")
+                    self?.updateTargetsWithFramebuffer(frameBuffer)
+                }
+            })
+        } else {
+            // Fallback on earlier versions
+            print("iOS version not supported")
+        }
+    }
+    
+    private func cancelFeedFrameForFilter() {
+        invalidFeedTimer()
+        feedFilterFrameBuffer = nil
+    }
+    
+    private func invalidFeedTimer() {
+        if let _ = feedFilterTimer {
+            feedFilterTimer!.invalidate()
+            feedFilterTimer = nil
         }
     }
 }
